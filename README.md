@@ -240,6 +240,7 @@ Successfully automated the installation of Nginx on a remote Ubuntu server using
 
 
 
+
 # Ansible Task 2 - Install, Start, and Enable Nginx Service
 
 ## Overview
@@ -391,6 +392,433 @@ Welcome to nginx!
 ```
 
 <img width="1353" height="681" alt="Screenshot 2026-07-01 015742" src="https://github.com/user-attachments/assets/29ed8aa1-a17e-4ca3-a864-da279c6b8e8b" />
+
+
+
+
+
+# Ansible Task 3 - Verify Nginx Using Ad-hoc Commands
+
+## Overview
+
+This task demonstrates how to use Ansible ad-hoc commands to verify that Nginx has been installed correctly, the service is running, and the web server is accessible over HTTP.
+
+Unlike previous tasks, no playbook is created. All operations are performed directly from the terminal using Ansible modules and commands.
+
+---
+
+## Prerequisites
+
+Before performing this task, ensure that:
+
+* Ansible is installed on the Control Node.
+* SSH connectivity between the Control Node and Managed Node is working.
+* Nginx has already been installed and started on the Managed Node.
+* The Managed Node is listed under the `webservers` group in the inventory file.
+
+---
+
+## Project Structure
+
+```text
+.
+└── inventory
+```
+
+---
+
+## Inventory File
+
+Example inventory configuration:
+
+```ini
+[webservers]
+<MANAGED_NODE_PUBLIC_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem
+```
+
+Replace:
+
+* `<MANAGED_NODE_PUBLIC_IP>` with the public IP of your EC2 instance.
+* `key.pem` with your SSH private key file.
+
+---
+
+## Step 1: Verify Nginx Installation
+
+Run the following command:
+
+```bash
+ansible webservers -i inventory -m shell -a "nginx -v"
+```
+
+### Sample Output
+
+```text
+13.233.xx.xx | CHANGED | rc=0 >>
+nginx version: nginx/1.24.0
+```
+
+### Verification
+
+This confirms that:
+
+* Nginx is installed on the managed node.
+* The installed version is displayed successfully.
+
+---
+
+## Step 2: Verify Nginx Service Status
+
+Run the following command:
+
+```bash
+ansible webservers -i inventory -m service -a "name=nginx"
+```
+
+### Sample Output
+
+```text
+13.233.xx.xx | SUCCESS => {
+    "changed": false,
+    "name": "nginx",
+    "state": "started"
+}
+```
+
+### Verification
+
+This confirms that:
+
+* The Nginx service exists.
+* The service is currently running.
+
+---
+
+## Step 3: Verify HTTP Response Using URI Module
+
+Replace `<PUBLIC-IP>` with the public IP of the managed node.
+
+Run:
+
+```bash
+ansible localhost -m uri -a "url=http://<PUBLIC-IP>"
+```
+
+Example:
+
+```bash
+ansible localhost -m uri -a "url=http://54.123.45.67"
+```
+
+### Sample Output
+
+```text
+localhost | SUCCESS => {
+    "changed": false,
+    "status": 200,
+    "url": "http://54.123.45.67"
+}
+```
+
+### Verification
+
+This confirms that:
+
+* The web server is reachable.
+* Nginx is serving content correctly.
+* The HTTP response code returned is **200 OK**.
+
+---
+
+## Browser Verification
+
+Open the Managed Node Public IP in a web browser:
+
+```text
+http://<MANAGED_NODE_PUBLIC_IP>
+```
+
+Expected Result:
+
+```text
+Welcome to nginx!
+```
+
+This confirms that the web server is accessible from the internet.
+
+---
+
+## Commands Summary
+
+| Verification               | Command                                                      |
+| -------------------------- | ------------------------------------------------------------ |
+| Check Nginx Installation   | `ansible webservers -i inventory -m shell -a "nginx -v"`     |
+| Check Nginx Service Status | `ansible webservers -i inventory -m service -a "name=nginx"` |
+| Verify HTTP Status 200     | `ansible localhost -m uri -a "url=http://<PUBLIC-IP>"`       |
+
+---
+
+<img width="915" height="420" alt="Screenshot 2026-07-01 020604" src="https://github.com/user-attachments/assets/23bf7e8f-5cd2-4692-bc70-91b608458727" />
+
+
+
+# Ansible Task 4 - Deploy a Static HTML Page Using the Copy Module
+
+## Overview
+
+This project demonstrates how to deploy a custom static HTML webpage to a remote Linux server using Ansible.
+
+The playbook performs the following actions:
+
+1. Installs Nginx.
+2. Starts and enables the Nginx service.
+3. Copies a local HTML file from the Control Node to the Managed Node.
+4. Sets the correct ownership and permissions on the deployed file.
+
+After successful execution, the webpage becomes accessible through the Managed Node's public IP address.
+
+---
+
+
+## Project Structure
+
+```text
+.
+├── inventory
+├── task4_deploy_site.yml
+└── files
+    └── index.html
+```
+
+---
+
+## Step 1: Create the HTML File
+
+Create a directory named `files` and add `index.html`.
+
+File: `files/index.html`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Ansible Site</title>
+</head>
+<body>
+    <h1>Hello from Ansible!</h1>
+    <p>This page was deployed using Ansible's copy module.</p>
+</body>
+</html>
+```
+
+---
+
+## Inventory Configuration
+
+Example inventory file:
+
+```ini
+[webservers]
+<MANAGED_NODE_PUBLIC_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem
+```
+
+Replace:
+
+* `<MANAGED_NODE_PUBLIC_IP>` with your EC2 instance public IP.
+* `key.pem` with your SSH private key.
+
+---
+
+## Playbook
+
+File: `task4_deploy_site.yml`
+
+```yaml
+---
+- name: Deploy Static Website Using Ansible
+  hosts: webservers
+  become: yes
+
+  tasks:
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and Enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Copy HTML file to Nginx web root
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+```
+
+---
+
+## Verify Connectivity
+
+Before running the playbook, verify communication with the managed node:
+
+```bash
+ansible webservers -i inventory -m ping
+```
+
+Expected Output:
+
+```text
+<IP_ADDRESS> | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+---
+
+## Execute the Playbook
+
+Run the following command from the Control Node:
+
+```bash
+ansible-playbook -i inventory task4_deploy_site.yml
+```
+
+---
+
+## Verify File Deployment
+
+Login to the managed node and verify the file:
+
+```bash
+ls -l /var/www/html/index.html
+```
+
+Expected Output:
+
+```text
+-rw-r--r-- 1 www-data www-data ... index.html
+```
+
+### Permission Explanation
+
+| Permission | Description    |
+| ---------- | -------------- |
+| Owner      | Read and Write |
+| Group      | Read           |
+| Others     | Read           |
+
+Mode `0644` corresponds to:
+
+```text
+-rw-r--r--
+```
+
+---
+
+## Verify Nginx Service
+
+Check Nginx status:
+
+```bash
+sudo systemctl status nginx
+```
+
+Expected Output:
+
+```text
+Active: active (running)
+```
+
+---
+
+## Browser Verification
+
+Open the Managed Node Public IP in a browser:
+
+```text
+http://<MANAGED_NODE_PUBLIC_IP>
+```
+
+Expected Result:
+
+```text
+Hello from Ansible!
+
+This page was deployed using Ansible's copy module.
+```
+
+---
+<img width="515" height="241" alt="Screenshot 2026-07-01 021141" src="https://github.com/user-attachments/assets/e950dc81-1dbc-4700-9a33-d2c04fd4cacc" />
+
+
+## Understanding the Deployment
+
+### Install Nginx
+
+The `apt` module ensures Nginx is installed on the target server.
+
+### Start and Enable Nginx
+
+The `service` module starts the Nginx service and enables it to start automatically after a reboot.
+
+### Copy the Web Page
+
+The `copy` module transfers the HTML file from the Control Node to the Managed Node.
+
+### Configure Ownership and Permissions
+
+The deployed file is assigned:
+
+* Owner: `www-data`
+* Group: `www-data`
+* Permissions: `0644`
+
+This ensures Nginx can serve the webpage correctly.
+
+---
+
+## Sample Play Recap
+
+First execution:
+
+```text
+PLAY RECAP ***********************************************************
+
+13.233.xx.xx : ok=3 changed=3 unreachable=0 failed=0
+```
+
+Meaning:
+
+* All tasks completed successfully.
+* Changes were made on the server.
+
+Subsequent execution:
+
+```text
+PLAY RECAP ***********************************************************
+
+13.233.xx.xx : ok=3 changed=0 unreachable=0 failed=0
+```
+<img width="922" height="433" alt="Screenshot 2026-07-01 021154" src="https://github.com/user-attachments/assets/d7d1236a-0d40-4220-a7e3-c0cf1902e077" />
+
+Meaning:
+
+* The server is already in the desired state.
+* No additional changes were required.
+* Demonstrates Ansible's idempotent behavior.
+
+---
+
+
+
 
 
 
