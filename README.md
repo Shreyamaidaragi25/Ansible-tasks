@@ -235,3 +235,211 @@ apt:
 ## Outcome
 
 Successfully automated the installation of Nginx on a remote Ubuntu server using Ansible and verified the deployment through a web browser.
+
+
+
+
+
+# Ansible Task 2 - Install, Start, and Enable Nginx Service
+
+## Overview
+
+This project demonstrates how to use Ansible to automate the installation and management of the Nginx web server on remote Linux hosts.
+
+The playbook performs the following actions:
+
+1. Installs Nginx on the target servers.
+2. Starts the Nginx service.
+3. Enables the Nginx service to start automatically during system boot.
+
+---
+
+## Prerequisites
+
+Before running the playbook, ensure:
+
+* Ansible is installed on the Control Node.
+* SSH connectivity exists between the Control Node and Managed Nodes.
+* Managed Nodes are running Ubuntu/Linux.
+* Inventory file contains the target servers under the `webservers` group.
+
+---
+
+## Project Structure
+
+```text
+.
+├── inventory
+└── task2_service.yml
+```
+
+---
+
+## Inventory File
+
+Create an inventory file named `inventory`.
+
+Example:
+
+```ini
+[webservers]
+<MANAGED_NODE_PUBLIC_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem
+```
+
+Replace:
+
+* `<MANAGED_NODE_PUBLIC_IP>` with your server's public IP.
+* `key.pem` with your SSH private key.
+
+---
+
+## Playbook
+
+File: `task2_service.yml`
+
+```yaml
+---
+- name: Install and Start Nginx Service
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and Enable Nginx Service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+```
+
+---
+
+## Verify Connectivity
+
+Before executing the playbook, verify connectivity with the managed node:
+
+```bash
+ansible webservers -i inventory -m ping
+```
+
+Expected Output:
+
+```text
+<IP_ADDRESS> | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+---
+
+## Execute the Playbook
+
+Run the following command from the Control Node:
+
+```bash
+ansible-playbook -i inventory task2_service.yml
+```
+
+---
+
+## Verify Nginx Service
+
+SSH into the managed node and verify the service status:
+
+```bash
+sudo systemctl status nginx
+```
+
+Expected Output:
+
+```text
+Active: active (running)
+```
+
+Check whether the service is enabled:
+
+```bash
+sudo systemctl is-enabled nginx
+```
+
+Expected Output:
+
+```text
+enabled
+```
+
+---
+
+## Validate Through Browser
+
+Copy the Public IP of the Managed Node and open it in a browser:
+
+```text
+http://<MANAGED_NODE_PUBLIC_IP>
+```
+
+Expected Result:
+
+```text
+Welcome to nginx!
+```
+
+<img width="1353" height="681" alt="Screenshot 2026-07-01 015742" src="https://github.com/user-attachments/assets/29ed8aa1-a17e-4ca3-a864-da279c6b8e8b" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Author
+
+Shreya Maidaragi
+
+Automation | DevOps | AWS | Ansible
+
