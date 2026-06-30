@@ -155,10 +155,8 @@ changed: [65.1.128.218]
 
 PLAY RECAP
 65.1.128.218 : ok=1 changed=1 failed=0
-
-<img width="1391" height="467" alt="Screenshot 2026-07-01 013724" src="https://github.com/user-attachments/assets/19aa9b4c-ff16-4148-99cb-dc26e2dba7f1" />
-
 ```
+<img width="1391" height="467" alt="Screenshot 2026-07-01 013724" src="https://github.com/user-attachments/assets/83cea171-e8aa-41ba-bcd3-3361465d8b24" />
 
 ---
 
@@ -202,11 +200,8 @@ Expected Result:
 
 ```text
 Welcome to nginx!
-<img width="1323" height="455" alt="Screenshot 2026-07-01 013027" src="https://github.com/user-attachments/assets/6cc6031c-fd7b-4fdc-9d0f-0992bd2f349f" />
-
-
-
 ```
+<img width="1323" height="455" alt="Screenshot 2026-07-01 013027" src="https://github.com/user-attachments/assets/b04deec6-a0af-455d-91f8-e6280286f34c" />
 
 ---
 
